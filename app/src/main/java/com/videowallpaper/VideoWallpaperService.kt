@@ -1,12 +1,17 @@
 package com.videowallpaper
 
+import android.app.WallpaperColors
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.graphics.Color
 import android.media.MediaPlayer
 import android.net.Uri
-import android.service.wallpaper.WallpaperService
-import android.view.SurfaceHolder
 import android.os.Handler
 import android.os.Looper
-import android.app.KeyguardManager
+import android.service.wallpaper.WallpaperService
+import android.view.SurfaceHolder
 
 class VideoWallpaperService : WallpaperService() {
 
@@ -17,13 +22,31 @@ class VideoWallpaperService : WallpaperService() {
     inner class VideoEngine : Engine() {
 
         private var mediaPlayer: MediaPlayer? = null
-        private var wasLocked = true
         private var isReady = false
         private val handler = Handler(Looper.getMainLooper())
+
+        private val unlockReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context, intent: Intent) {
+                when (intent.action) {
+                    Intent.ACTION_USER_PRESENT -> playVideo()
+                    Intent.ACTION_SCREEN_OFF -> showFirstFrame()
+                }
+            }
+        }
 
         override fun onCreate(surfaceHolder: SurfaceHolder) {
             super.onCreate(surfaceHolder)
             setTouchEventsEnabled(false)
+            val filter = IntentFilter().apply {
+                addAction(Intent.ACTION_USER_PRESENT)
+                addAction(Intent.ACTION_SCREEN_OFF)
+            }
+            registerReceiver(unlockReceiver, filter)
+        }
+
+        override fun onDestroy() {
+            super.onDestroy()
+            unregisterReceiver(unlockReceiver)
         }
 
         override fun onSurfaceCreated(holder: SurfaceHolder) {
@@ -37,16 +60,13 @@ class VideoWallpaperService : WallpaperService() {
         }
 
         override fun onVisibilityChanged(visible: Boolean) {
-            super.onVisibilityChanged(visible)
-            val keyguardManager = getSystemService(KEYGUARD_SERVICE) as KeyguardManager
-            val isLocked = keyguardManager.isKeyguardLocked
-            if (!visible && isLocked) {
-                wasLocked = true
-                showFirstFrame()
-            } else if (visible && wasLocked && !isLocked) {
-                wasLocked = false
-                playVideo()
-            }
+            // BroadcastReceiver يتحكم بكل شيء
+        }
+
+        override fun onComputeColors(): WallpaperColors {
+            val prefs = getSharedPreferences("wallpaper_prefs", MODE_PRIVATE)
+            val colorInt = prefs.getInt("accent_color", Color.parseColor("#6200EE"))
+            return WallpaperColors(Color.valueOf(colorInt), null, null)
         }
 
         private fun setupMediaPlayer(holder: SurfaceHolder) {

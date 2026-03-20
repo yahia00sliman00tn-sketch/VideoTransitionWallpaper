@@ -26,11 +26,11 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="الفريم الأول = شاشة القفل\nالفريم الأخير = الشاشة الرئيسية"
+        android:text="الفريم الأول = شاشة القفل&#10;الفريم الأخير = الشاشة الرئيسية"
         android:textColor="#AAAAAA"
         android:textSize="14sp"
         android:gravity="center"
-        android:layout_marginBottom="40dp"/>
+        android:layout_marginBottom="32dp"/>
 
     <TextView
         android:id="@+id/tvStatus"
@@ -41,14 +41,29 @@
         android:textSize="14sp"
         android:layout_marginBottom="24dp"/>
 
+    <View
+        android:id="@+id/colorPreview"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_marginBottom="16dp"
+        android:background="#6200EE"/>
+
+    <Button
+        android:id="@+id/btnPickColor"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:text="🎨 اختر لون Material You"
+        android:textSize="16sp"
+        android:layout_marginBottom="12dp"/>
+
     <Button
         android:id="@+id/btnSelectVideo"
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:text="اختر فيديو"
         android:textSize="16sp"
-        android:backgroundTint="#1DB954"
-        android:layout_marginBottom="16dp"/>
+        android:backgroundTint="#333333"
+        android:layout_marginBottom="12dp"/>
 
     <Button
         android:id="@+id/btnSetWallpaper"
@@ -56,7 +71,6 @@
         android:layout_height="56dp"
         android:text="تفعيل كخلفية"
         android:textSize="16sp"
-        android:backgroundTint="#1565C0"
         android:enabled="false"/>
 
 </LinearLayout>
