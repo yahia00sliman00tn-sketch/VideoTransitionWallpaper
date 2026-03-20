@@ -58,7 +58,7 @@ class VideoWallpaperService : WallpaperService() {
             try {
                 val uri = Uri.parse(uriString)
                 val player = MediaPlayer()
-                player.setSurface(Surface(holder.surface))
+                player.setSurface(holder.surface)
                 player.setDataSource(applicationContext, uri)
                 player.isLooping = false
                 player.setOnCompletionListener { mp ->
