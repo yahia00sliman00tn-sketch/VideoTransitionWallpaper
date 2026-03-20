@@ -7,6 +7,8 @@ import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
@@ -70,31 +72,119 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showColorPickerDialog() {
-        val colors = listOf(
-            "#6200EE" to "بنفسجي",
-            "#03DAC5" to "فيروزي",
-            "#FF6D00" to "برتقالي",
-            "#E91E63" to "وردي",
-            "#00BCD4" to "سماوي",
-            "#4CAF50" to "أخضر",
-            "#F44336" to "أحمر",
-            "#FF9800" to "ذهبي",
-            "#9C27B0" to "بنفسجي غامق",
-            "#FFFFFF" to "أبيض",
-            "#000000" to "أسود"
-        )
+        val dialogView = layoutInflater.inflate(R.layout.dialog_color_picker, null)
 
-        val names = colors.map { it.second }.toTypedArray()
+        val previewBox    = dialogView.findViewById<View>(R.id.dialogColorPreview)
+        val etHex         = dialogView.findViewById<EditText>(R.id.etHex)
+        val etR           = dialogView.findViewById<EditText>(R.id.etR)
+        val etG           = dialogView.findViewById<EditText>(R.id.etG)
+        val etB           = dialogView.findViewById<EditText>(R.id.etB)
+        val etH           = dialogView.findViewById<EditText>(R.id.etH)
+        val etS           = dialogView.findViewById<EditText>(R.id.etS)
+        val etL           = dialogView.findViewById<EditText>(R.id.etL)
+        val sbR           = dialogView.findViewById<SeekBar>(R.id.sbR)
+        val sbG           = dialogView.findViewById<SeekBar>(R.id.sbG)
+        val sbB           = dialogView.findViewById<SeekBar>(R.id.sbB)
+
+        var updating = false
+
+        // تهيئة بالقيم الحالية
+        var r = Color.red(selectedColor)
+        var g = Color.green(selectedColor)
+        var b = Color.blue(selectedColor)
+
+        fun updateAll() {
+            if (updating) return
+            updating = true
+            val color = Color.rgb(r, g, b)
+            previewBox.setBackgroundColor(color)
+            etHex.setText("#%02X%02X%02X".format(r, g, b))
+            etR.setText(r.toString())
+            etG.setText(g.toString())
+            etB.setText(b.toString())
+            sbR.progress = r
+            sbG.progress = g
+            sbB.progress = b
+            // حساب HSL
+            val hsl = FloatArray(3)
+            android.graphics.Color.RGBToHSV(r, g, b, hsl)
+            etH.setText(hsl[0].toInt().toString())
+            etS.setText((hsl[1] * 100).toInt().toString())
+            etL.setText((hsl[2] * 100).toInt().toString())
+            updating = false
+        }
+
+        updateAll()
+
+        // SeekBars
+        sbR.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(sb: SeekBar, v: Int, u: Boolean) { r = v; updateAll() }
+            override fun onStartTrackingTouch(sb: SeekBar) {}
+            override fun onStopTrackingTouch(sb: SeekBar) {}
+        })
+        sbG.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(sb: SeekBar, v: Int, u: Boolean) { g = v; updateAll() }
+            override fun onStartTrackingTouch(sb: SeekBar) {}
+            override fun onStopTrackingTouch(sb: SeekBar) {}
+        })
+        sbB.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(sb: SeekBar, v: Int, u: Boolean) { b = v; updateAll() }
+            override fun onStartTrackingTouch(sb: SeekBar) {}
+            override fun onStopTrackingTouch(sb: SeekBar) {}
+        })
+
+        // HEX input
+        etHex.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(s: Editable) {
+                if (updating) return
+                try {
+                    val hex = s.toString().trim()
+                    val color = Color.parseColor(if (hex.startsWith("#")) hex else "#$hex")
+                    r = Color.red(color)
+                    g = Color.green(color)
+                    b = Color.blue(color)
+                    updateAll()
+                } catch (e: Exception) {}
+            }
+            override fun beforeTextChanged(s: CharSequence, a: Int, b: Int, c: Int) {}
+            override fun onTextChanged(s: CharSequence, a: Int, b: Int, c: Int) {}
+        })
+
+        // HSL input
+        fun applyHSL() {
+            if (updating) return
+            try {
+                val h = etH.text.toString().toFloat()
+                val s = etS.text.toString().toFloat() / 100f
+                val l = etL.text.toString().toFloat() / 100f
+                val color = Color.HSVToColor(floatArrayOf(h, s, l))
+                r = Color.red(color)
+                g = Color.green(color)
+                b = Color.blue(color)
+                updateAll()
+            } catch (e: Exception) {}
+        }
+
+        val hslWatcher = object : TextWatcher {
+            override fun afterTextChanged(s: Editable) { applyHSL() }
+            override fun beforeTextChanged(s: CharSequence, a: Int, c: Int, d: Int) {}
+            override fun onTextChanged(s: CharSequence, a: Int, c: Int, d: Int) {}
+        }
+        etH.addTextChangedListener(hslWatcher)
+        etS.addTextChangedListener(hslWatcher)
+        etL.addTextChangedListener(hslWatcher)
 
         AlertDialog.Builder(this)
-            .setTitle("اختر لون Material You")
-            .setItems(names) { _, index ->
-                selectedColor = Color.parseColor(colors[index].first)
+            .setTitle("🎨 اختر لون Material You")
+            .setView(dialogView)
+            .setPositiveButton("حفظ") { _, _ ->
+                selectedColor = Color.rgb(r, g, b)
                 val prefs = getSharedPreferences("wallpaper_prefs", MODE_PRIVATE)
                 prefs.edit().putInt("accent_color", selectedColor).apply()
                 updateColorUI()
                 Toast.makeText(this, "تم حفظ اللون ✓", Toast.LENGTH_SHORT).show()
             }
+            .setNegativeButton("إلغاء", null)
             .show()
     }
 
@@ -102,6 +192,7 @@ class MainActivity : AppCompatActivity() {
         colorPreview.setBackgroundColor(selectedColor)
         btnSetWallpaper.setBackgroundColor(selectedColor)
         btnPickColor.setBackgroundColor(selectedColor)
+        tvStatus.setTextColor(selectedColor)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

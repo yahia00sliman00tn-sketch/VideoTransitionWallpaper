@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- معاينة اللون -->
+        <View
+            android:id="@+id/dialogColorPreview"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- HEX -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="HEX"
+            android:textStyle="bold"
+            android:textColor="#000000"/>
+
+        <EditText
+            android:id="@+id/etHex"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="#6200EE"
+            android:inputType="text"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- RGB -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="RGB"
+            android:textStyle="bold"
+            android:textColor="#000000"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="4dp">
+
+            <TextView android:layout_width="20dp" android:layout_height="wrap_content" android:text="R" android:textColor="#F44336"/>
+            <SeekBar
+                android:id="@+id/sbR"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:max="255"/>
+            <EditText
+                android:id="@+id/etR"
+                android:layout_width="50dp"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:hint="0"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="4dp">
+
+            <TextView android:layout_width="20dp" android:layout_height="wrap_content" android:text="G" android:textColor="#4CAF50"/>
+            <SeekBar
+                android:id="@+id/sbG"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:max="255"/>
+            <EditText
+                android:id="@+id/etG"
+                android:layout_width="50dp"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:hint="0"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+
+            <TextView android:layout_width="20dp" android:layout_height="wrap_content" android:text="B" android:textColor="#2196F3"/>
+            <SeekBar
+                android:id="@+id/sbB"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:max="255"/>
+            <EditText
+                android:id="@+id/etB"
+                android:layout_width="50dp"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:hint="0"/>
+        </LinearLayout>
+
+        <!-- HSL -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="HSL"
+            android:textStyle="bold"
+            android:textColor="#000000"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="4dp">
+
+            <TextView android:layout_width="20dp" android:layout_height="wrap_content" android:text="H"/>
+            <EditText
+                android:id="@+id/etH"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:inputType="number"
+                android:hint="0-360"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="4dp">
+
+            <TextView android:layout_width="20dp" android:layout_height="wrap_content" android:text="S"/>
+            <EditText
+                android:id="@+id/etS"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:inputType="number"
+                android:hint="0-100"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="8dp">
+
+            <TextView android:layout_width="20dp" android:layout_height="wrap_content" android:text="L"/>
+            <EditText
+                android:id="@+id/etL"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:inputType="number"
+                android:hint="0-100"/>
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>
