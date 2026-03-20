@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Video Transition Wallpaper</string>
+    <string name="wallpaper_description">يحول فيديو قصير إلى انتقال بين شاشة القفل والشاشة الرئيسية</string>
+    <string name="select_video">اختر فيديو</string>
+    <string name="set_wallpaper">تفعيل كخلفية</string>
+    <string name="no_video">لم يتم اختيار فيديو بعد</string>
+    <string name="video_selected">تم اختيار الفيديو ✓</string>
+</resources>
