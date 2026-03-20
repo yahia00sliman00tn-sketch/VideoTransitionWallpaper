@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="GlassDialog" parent="Theme.AppCompat.Dialog.Alert">
+        <item name="android:windowBackground">@drawable/glass_card</item>
+        <item name="android:textColorPrimary">#FFFFFF</item>
+        <item name="android:background">#1A1A2E</item>
+        <item name="colorAccent">#7F00FF</item>
+    </style>
+</resources>
