@@ -3,10 +3,10 @@ package com.videowallpaper
 import android.media.MediaPlayer
 import android.net.Uri
 import android.service.wallpaper.WallpaperService
-import android.view.Surface
 import android.view.SurfaceHolder
 import android.os.Handler
 import android.os.Looper
+import android.app.KeyguardManager
 
 class VideoWallpaperService : WallpaperService() {
 
@@ -17,10 +17,9 @@ class VideoWallpaperService : WallpaperService() {
     inner class VideoEngine : Engine() {
 
         private var mediaPlayer: MediaPlayer? = null
-        private var isVisible = false
         private var wasLocked = true
+        private var isReady = false
         private val handler = Handler(Looper.getMainLooper())
-        private var surfaceHolder: SurfaceHolder? = null
 
         override fun onCreate(surfaceHolder: SurfaceHolder) {
             super.onCreate(surfaceHolder)
@@ -29,44 +28,46 @@ class VideoWallpaperService : WallpaperService() {
 
         override fun onSurfaceCreated(holder: SurfaceHolder) {
             super.onSurfaceCreated(holder)
-            this.surfaceHolder = holder
             setupMediaPlayer(holder)
         }
 
         override fun onSurfaceDestroyed(holder: SurfaceHolder) {
             super.onSurfaceDestroyed(holder)
             releasePlayer()
-            this.surfaceHolder = null
         }
 
         override fun onVisibilityChanged(visible: Boolean) {
             super.onVisibilityChanged(visible)
-            isVisible = visible
-            if (visible && wasLocked) {
+            val keyguardManager = getSystemService(KEYGUARD_SERVICE) as KeyguardManager
+            val isLocked = keyguardManager.isKeyguardLocked
+            if (!visible && isLocked) {
+                wasLocked = true
+                showFirstFrame()
+            } else if (visible && wasLocked && !isLocked) {
                 wasLocked = false
                 playVideo()
-            } else if (!visible) {
-                wasLocked = true
-                resetToFirstFrame()
             }
         }
 
         private fun setupMediaPlayer(holder: SurfaceHolder) {
             val prefs = getSharedPreferences("wallpaper_prefs", MODE_PRIVATE)
             val uriString = prefs.getString(MainActivity.PREF_VIDEO_URI, null) ?: return
-
             try {
                 val uri = Uri.parse(uriString)
                 val player = MediaPlayer()
                 player.setSurface(holder.surface)
                 player.setDataSource(applicationContext, uri)
                 player.isLooping = false
-                player.setOnCompletionListener { mp ->
+                player.setOnPreparedListener { mp ->
+                    isReady = true
                     mp.seekTo(0)
+                    mp.start()
                     mp.pause()
                 }
-                player.prepare()
-                player.seekTo(0)
+                player.setOnCompletionListener { mp ->
+                    mp.seekTo(mp.duration)
+                }
+                player.prepareAsync()
                 mediaPlayer = player
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -77,6 +78,7 @@ class VideoWallpaperService : WallpaperService() {
             handler.post {
                 try {
                     val player = mediaPlayer ?: return@post
+                    if (!isReady) return@post
                     player.seekTo(0)
                     player.start()
                 } catch (e: Exception) {
@@ -85,10 +87,11 @@ class VideoWallpaperService : WallpaperService() {
             }
         }
 
-        private fun resetToFirstFrame() {
+        private fun showFirstFrame() {
             handler.post {
                 try {
                     val player = mediaPlayer ?: return@post
+                    if (!isReady) return@post
                     player.pause()
                     player.seekTo(0)
                 } catch (e: Exception) {
@@ -100,6 +103,7 @@ class VideoWallpaperService : WallpaperService() {
         private fun releasePlayer() {
             mediaPlayer?.release()
             mediaPlayer = null
+            isReady = false
         }
     }
 }
