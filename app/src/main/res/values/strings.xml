@@ -1,9 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Video Transition Wallpaper</string>
-    <string name="wallpaper_description">يحول فيديو قصير إلى انتقال بين شاشة القفل والشاشة الرئيسية</string>
-    <string name="select_video">اختر فيديو</string>
-    <string name="set_wallpaper">تفعيل كخلفية</string>
-    <string name="no_video">لم يتم اختيار فيديو بعد</string>
-    <string name="video_selected">تم اختيار الفيديو ✓</string>
+    <string name="app_name">Video Wallpaper</string>
+    <string name="wallpaper_description">Smooth transition from lock screen to home screen</string>
+    <string name="choose_video">Choose Video</string>
+    <string name="set_wallpaper">Set as Wallpaper</string>
+    <string name="pick_color">Pick Material You Color</string>
+    <string name="reset">↺ Reset</string>
+    <string name="no_video">No video selected</string>
+    <string name="video_selected">Video selected ✓</string>
+    <string name="reset_title">Reset</string>
+    <string name="reset_message">Reset video and color settings?</string>
+    <string name="reset_done">Reset done ✓</string>
+    <string name="color_saved">Color saved ✓</string>
+    <string name="yes">Yes</string>
+    <string name="cancel">Cancel</string>
+    <string name="save">Save</string>
+    <string name="video_label">VIDEO</string>
+    <string name="color_label">MATERIAL YOU COLOR</string>
+    <string name="frame_hint">Frame 0 = Lock Screen  •  Last Frame = Home</string>
 </resources>

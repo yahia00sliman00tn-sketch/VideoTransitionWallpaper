@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="#1A1A2E">
+
+    <!-- معاينة اللون -->
+    <View
+        android:id="@+id/previewBar"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginBottom="12dp"/>
+
+    <!-- كود اللون -->
+    <TextView
+        android:id="@+id/tvHexCode"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="#6200EE"
+        android:textColor="#FFFFFF"
+        android:textSize="20sp"
+        android:fontFamily="monospace"
+        android:layout_gravity="center"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- عجلة الألوان -->
+    <com.videowallpaper.ColorWheelView
+        android:id="@+id/colorWheel"
+        android:layout_width="280dp"
+        android:layout_height="280dp"
+        android:layout_gravity="center"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- السطوع -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="السطوع / Brightness"
+        android:textColor="#80FFFFFF"
+        android:textSize="12sp"
+        android:layout_marginBottom="8dp"/>
+
+    <SeekBar
+        android:id="@+id/sbBrightness"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:max="100"
+        android:progress="100"
+        android:layout_marginBottom="8dp"/>
+
+</LinearLayout>

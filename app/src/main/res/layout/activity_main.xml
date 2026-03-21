@@ -23,16 +23,17 @@
             android:paddingLeft="24dp"
             android:paddingRight="24dp">
 
-            <ImageView
-                android:layout_width="96dp"
-                android:layout_height="96dp"
-                android:src="@mipmap/ic_launcher"
-                android:layout_marginBottom="16dp"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🎬"
+                android:textSize="72sp"
+                android:layout_marginBottom="12dp"/>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Video Wallpaper"
+                android:text="@string/app_name"
                 android:textColor="#FFFFFF"
                 android:textSize="28sp"
                 android:textStyle="bold"
@@ -60,7 +61,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="VIDEO"
+                    android:text="@string/video_label"
                     android:textColor="#80FFFFFF"
                     android:textSize="11sp"
                     android:letterSpacing="0.15"
@@ -70,7 +71,7 @@
                     android:id="@+id/tvStatus"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="No video selected"
+                    android:text="@string/no_video"
                     android:textColor="#FFFFFF"
                     android:textSize="16sp"
                     android:layout_marginBottom="16dp"/>
@@ -79,7 +80,7 @@
                     android:id="@+id/btnSelectVideo"
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
-                    android:text="Choose Video"
+                    android:text="@string/choose_video"
                     android:textColor="#FFFFFF"
                     android:textSize="15sp"
                     android:background="@drawable/btn_glass"/>
@@ -98,7 +99,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="MATERIAL YOU COLOR"
+                    android:text="@string/color_label"
                     android:textColor="#80FFFFFF"
                     android:textSize="11sp"
                     android:letterSpacing="0.15"
@@ -133,7 +134,7 @@
                     android:id="@+id/btnPickColor"
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
-                    android:text="Pick Color"
+                    android:text="@string/pick_color"
                     android:textColor="#FFFFFF"
                     android:textSize="15sp"
                     android:background="@drawable/btn_glass"/>
@@ -145,7 +146,7 @@
                 android:id="@+id/btnSetWallpaper"
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
-                android:text="Set as Wallpaper"
+                android:text="@string/set_wallpaper"
                 android:textColor="#FFFFFF"
                 android:textSize="17sp"
                 android:textStyle="bold"
@@ -158,7 +159,7 @@
                 android:id="@+id/btnReset"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
-                android:text="↺ Reset"
+                android:text="@string/reset"
                 android:textColor="#80FFFFFF"
                 android:textSize="15sp"
                 android:background="@drawable/btn_glass"
@@ -167,7 +168,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Frame 0 = Lock Screen  •  Last Frame = Home"
+                android:text="@string/frame_hint"
                 android:textColor="#40FFFFFF"
                 android:textSize="12sp"/>
 

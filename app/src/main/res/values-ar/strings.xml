@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">خلفية الفيديو</string>
+    <string name="wallpaper_description">انتقال سلس بين شاشة القفل والشاشة الرئيسية</string>
+    <string name="choose_video">اختر فيديو</string>
+    <string name="set_wallpaper">تعيين كخلفية</string>
+    <string name="pick_color">اختر لون Material You</string>
+    <string name="reset">↺ إعادة تعيين</string>
+    <string name="no_video">لم يتم اختيار فيديو</string>
+    <string name="video_selected">تم اختيار الفيديو ✓</string>
+    <string name="reset_title">إعادة تعيين</string>
+    <string name="reset_message">هل تريد إعادة تعيين الفيديو واللون؟</string>
+    <string name="reset_done">تمت الإعادة ✓</string>
+    <string name="color_saved">تم حفظ اللون ✓</string>
+    <string name="yes">نعم</string>
+    <string name="cancel">إلغاء</string>
+    <string name="save">حفظ</string>
+    <string name="video_label">الفيديو</string>
+    <string name="color_label">لون Material You</string>
+    <string name="frame_hint">الفريم الأول = شاشة القفل  •  الفريم الأخير = الرئيسية</string>
+</resources>
