@@ -22,13 +22,27 @@ class VideoWallpaperService : WallpaperService() {
         private var mediaPlayer: MediaPlayer? = null
         private var isReady = false
         private var videoDuration = 0
+        private var isLocked = true
+        private var lastUnlockTime = 0L
         private val handler = Handler(Looper.getMainLooper())
 
         private val unlockReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
                 when (intent.action) {
-                    Intent.ACTION_USER_PRESENT -> playVideo()
-                    Intent.ACTION_SCREEN_OFF   -> showFirstFrame()
+                    Intent.ACTION_SCREEN_OFF -> {
+                        // الشاشة أُقفلت فعلاً
+                        isLocked = true
+                        showFirstFrame()
+                    }
+                    Intent.ACTION_USER_PRESENT -> {
+                        // فُتح القفل — لكن فقط إذا كان مقفلاً فعلاً
+                        if (isLocked) {
+                            isLocked = false
+                            lastUnlockTime = System.currentTimeMillis()
+                            playVideo()
+                        }
+                        // إذا لم يكن مقفلاً (مثل Gemini) — تجاهل
+                    }
                 }
             }
         }
@@ -78,22 +92,16 @@ class VideoWallpaperService : WallpaperService() {
                     setSurface(holder.surface)
                     setDataSource(applicationContext, uri)
                     isLooping = false
-
                     setOnPreparedListener { mp ->
                         videoDuration = mp.duration
                         isReady = true
-                        // اعرض الفريم الأول فوراً
                         mp.seekTo(0, MediaPlayer.SEEK_CLOSEST)
                         mp.start()
                         handler.postDelayed({ mp.pause() }, 80)
                     }
-
                     setOnCompletionListener { mp ->
-                        // الحل الحقيقي: pause قبل نهاية الفيديو بـ 100ms
-                        // بدل seekTo(duration) الذي يسبب الرجوع
                         mp.pause()
                     }
-
                     setOnErrorListener { _, _, _ ->
                         isReady = false
                         false
@@ -113,17 +121,12 @@ class VideoWallpaperService : WallpaperService() {
                     if (!isReady) return@post
                     player.seekTo(0, MediaPlayer.SEEK_CLOSEST)
                     player.start()
-
-                    // نوقف الفيديو قبل نهايته بـ 100ms لتجنب الرجوع
                     val stopAt = (videoDuration - 100).coerceAtLeast(0).toLong()
                     handler.postDelayed({
                         try {
-                            if (player.isPlaying) {
-                                player.pause()
-                            }
+                            if (player.isPlaying) player.pause()
                         } catch (e: Exception) {}
                     }, stopAt)
-
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }

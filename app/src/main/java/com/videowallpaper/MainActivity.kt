@@ -5,6 +5,7 @@ import android.app.WallpaperManager
 import android.content.ComponentName
 import android.content.Intent
 import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
@@ -16,9 +17,11 @@ import androidx.appcompat.app.AppCompatActivity
 class MainActivity : AppCompatActivity() {
 
     private lateinit var tvStatus: TextView
+    private lateinit var tvColorHex: TextView
     private lateinit var btnSelectVideo: Button
     private lateinit var btnSetWallpaper: Button
     private lateinit var btnPickColor: Button
+    private lateinit var btnReset: Button
     private lateinit var colorPreview: View
     private var selectedColor = Color.parseColor("#6200EE")
 
@@ -32,9 +35,11 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         tvStatus = findViewById(R.id.tvStatus)
+        tvColorHex = findViewById(R.id.tvColorHex)
         btnSelectVideo = findViewById(R.id.btnSelectVideo)
         btnSetWallpaper = findViewById(R.id.btnSetWallpaper)
         btnPickColor = findViewById(R.id.btnPickColor)
+        btnReset = findViewById(R.id.btnReset)
         colorPreview = findViewById(R.id.colorPreview)
 
         val prefs = getSharedPreferences("wallpaper_prefs", MODE_PRIVATE)
@@ -43,8 +48,7 @@ class MainActivity : AppCompatActivity() {
 
         val savedUri = prefs.getString(PREF_VIDEO_URI, null)
         if (savedUri != null) {
-            tvStatus.text = "تم اختيار الفيديو ✓"
-            tvStatus.setTextColor(selectedColor)
+            tvStatus.text = "Video selected ✓"
             btnSetWallpaper.isEnabled = true
         }
 
@@ -69,26 +73,40 @@ class MainActivity : AppCompatActivity() {
             }
             startActivity(intent)
         }
+
+        btnReset.setOnClickListener {
+            AlertDialog.Builder(this)
+                .setTitle("Reset")
+                .setMessage("هل تريد إعادة تعيين الفيديو واللون؟")
+                .setPositiveButton("نعم") { _, _ ->
+                    val prefs = getSharedPreferences("wallpaper_prefs", MODE_PRIVATE)
+                    prefs.edit().clear().apply()
+                    selectedColor = Color.parseColor("#6200EE")
+                    updateColorUI()
+                    tvStatus.text = "No video selected"
+                    btnSetWallpaper.isEnabled = false
+                    Toast.makeText(this, "تم الإعادة ✓", Toast.LENGTH_SHORT).show()
+                }
+                .setNegativeButton("إلغاء", null)
+                .show()
+        }
     }
 
     private fun showColorPickerDialog() {
         val dialogView = layoutInflater.inflate(R.layout.dialog_color_picker, null)
-
-        val previewBox    = dialogView.findViewById<View>(R.id.dialogColorPreview)
-        val etHex         = dialogView.findViewById<EditText>(R.id.etHex)
-        val etR           = dialogView.findViewById<EditText>(R.id.etR)
-        val etG           = dialogView.findViewById<EditText>(R.id.etG)
-        val etB           = dialogView.findViewById<EditText>(R.id.etB)
-        val etH           = dialogView.findViewById<EditText>(R.id.etH)
-        val etS           = dialogView.findViewById<EditText>(R.id.etS)
-        val etL           = dialogView.findViewById<EditText>(R.id.etL)
-        val sbR           = dialogView.findViewById<SeekBar>(R.id.sbR)
-        val sbG           = dialogView.findViewById<SeekBar>(R.id.sbG)
-        val sbB           = dialogView.findViewById<SeekBar>(R.id.sbB)
+        val previewBox = dialogView.findViewById<View>(R.id.dialogColorPreview)
+        val etHex = dialogView.findViewById<EditText>(R.id.etHex)
+        val etR = dialogView.findViewById<EditText>(R.id.etR)
+        val etG = dialogView.findViewById<EditText>(R.id.etG)
+        val etB = dialogView.findViewById<EditText>(R.id.etB)
+        val etH = dialogView.findViewById<EditText>(R.id.etH)
+        val etS = dialogView.findViewById<EditText>(R.id.etS)
+        val etL = dialogView.findViewById<EditText>(R.id.etL)
+        val sbR = dialogView.findViewById<SeekBar>(R.id.sbR)
+        val sbG = dialogView.findViewById<SeekBar>(R.id.sbG)
+        val sbB = dialogView.findViewById<SeekBar>(R.id.sbB)
 
         var updating = false
-
-        // تهيئة بالقيم الحالية
         var r = Color.red(selectedColor)
         var g = Color.green(selectedColor)
         var b = Color.blue(selectedColor)
@@ -105,18 +123,16 @@ class MainActivity : AppCompatActivity() {
             sbR.progress = r
             sbG.progress = g
             sbB.progress = b
-            // حساب HSL
-            val hsl = FloatArray(3)
-            android.graphics.Color.RGBToHSV(r, g, b, hsl)
-            etH.setText(hsl[0].toInt().toString())
-            etS.setText((hsl[1] * 100).toInt().toString())
-            etL.setText((hsl[2] * 100).toInt().toString())
+            val hsv = FloatArray(3)
+            Color.RGBToHSV(r, g, b, hsv)
+            etH.setText(hsv[0].toInt().toString())
+            etS.setText((hsv[1] * 100).toInt().toString())
+            etL.setText((hsv[2] * 100).toInt().toString())
             updating = false
         }
 
         updateAll()
 
-        // SeekBars
         sbR.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(sb: SeekBar, v: Int, u: Boolean) { r = v; updateAll() }
             override fun onStartTrackingTouch(sb: SeekBar) {}
@@ -133,7 +149,6 @@ class MainActivity : AppCompatActivity() {
             override fun onStopTrackingTouch(sb: SeekBar) {}
         })
 
-        // HEX input
         etHex.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable) {
                 if (updating) return
@@ -146,27 +161,24 @@ class MainActivity : AppCompatActivity() {
                     updateAll()
                 } catch (e: Exception) {}
             }
-            override fun beforeTextChanged(s: CharSequence, a: Int, b: Int, c: Int) {}
-            override fun onTextChanged(s: CharSequence, a: Int, b: Int, c: Int) {}
+            override fun beforeTextChanged(s: CharSequence, a: Int, c: Int, d: Int) {}
+            override fun onTextChanged(s: CharSequence, a: Int, c: Int, d: Int) {}
         })
 
-        // HSL input
-        fun applyHSL() {
-            if (updating) return
-            try {
-                val h = etH.text.toString().toFloat()
-                val s = etS.text.toString().toFloat() / 100f
-                val l = etL.text.toString().toFloat() / 100f
-                val color = Color.HSVToColor(floatArrayOf(h, s, l))
-                r = Color.red(color)
-                g = Color.green(color)
-                b = Color.blue(color)
-                updateAll()
-            } catch (e: Exception) {}
-        }
-
         val hslWatcher = object : TextWatcher {
-            override fun afterTextChanged(s: Editable) { applyHSL() }
+            override fun afterTextChanged(s: Editable) {
+                if (updating) return
+                try {
+                    val h = etH.text.toString().toFloat()
+                    val sv = etS.text.toString().toFloat() / 100f
+                    val l = etL.text.toString().toFloat() / 100f
+                    val color = Color.HSVToColor(floatArrayOf(h, sv, l))
+                    r = Color.red(color)
+                    g = Color.green(color)
+                    b = Color.blue(color)
+                    updateAll()
+                } catch (e: Exception) {}
+            }
             override fun beforeTextChanged(s: CharSequence, a: Int, c: Int, d: Int) {}
             override fun onTextChanged(s: CharSequence, a: Int, c: Int, d: Int) {}
         }
@@ -174,25 +186,35 @@ class MainActivity : AppCompatActivity() {
         etS.addTextChangedListener(hslWatcher)
         etL.addTextChangedListener(hslWatcher)
 
-        AlertDialog.Builder(this)
-            .setTitle("🎨 اختر لون Material You")
+        AlertDialog.Builder(this, R.style.GlassDialog)
+            .setTitle("Material You Color")
             .setView(dialogView)
-            .setPositiveButton("حفظ") { _, _ ->
+            .setPositiveButton("Save") { _, _ ->
                 selectedColor = Color.rgb(r, g, b)
                 val prefs = getSharedPreferences("wallpaper_prefs", MODE_PRIVATE)
                 prefs.edit().putInt("accent_color", selectedColor).apply()
                 updateColorUI()
-                Toast.makeText(this, "تم حفظ اللون ✓", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Color saved ✓", Toast.LENGTH_SHORT).show()
             }
-            .setNegativeButton("إلغاء", null)
+            .setNegativeButton("Cancel", null)
             .show()
     }
 
     private fun updateColorUI() {
-        colorPreview.setBackgroundColor(selectedColor)
-        btnSetWallpaper.setBackgroundColor(selectedColor)
-        btnPickColor.setBackgroundColor(selectedColor)
-        tvStatus.setTextColor(selectedColor)
+        val hex = "#%06X".format(0xFFFFFF and selectedColor)
+        tvColorHex.text = hex
+        val circle = GradientDrawable().apply {
+            shape = GradientDrawable.OVAL
+            setColor(selectedColor)
+            setStroke(4, 0x60FFFFFF)
+        }
+        colorPreview.background = circle
+        val btnDrawable = GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            cornerRadius = 42f
+            setColor(selectedColor)
+        }
+        btnSetWallpaper.background = btnDrawable
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -205,9 +227,9 @@ class MainActivity : AppCompatActivity() {
                 )
                 val prefs = getSharedPreferences("wallpaper_prefs", MODE_PRIVATE)
                 prefs.edit().putString(PREF_VIDEO_URI, uri.toString()).apply()
-                tvStatus.text = "تم اختيار الفيديو ✓"
-                tvStatus.setTextColor(selectedColor)
+                tvStatus.text = "Video selected ✓"
                 btnSetWallpaper.isEnabled = true
+                updateColorUI()
             }
         }
     }
