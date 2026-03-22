@@ -15,6 +15,12 @@ import android.view.SurfaceHolder
 
 class VideoWallpaperService : WallpaperService() {
 
+    companion object {
+        const val MODE_UNLOCK = "unlock"   // الفيديو عند فتح القفل
+        const val MODE_LOCKSCREEN = "lockscreen" // الفيديو في شاشة القفل
+        const val ACTION_RELOAD = "com.videowallpaper.RELOAD"
+    }
+
     override fun onCreateEngine(): Engine = VideoEngine()
 
     inner class VideoEngine : Engine() {
@@ -23,25 +29,43 @@ class VideoWallpaperService : WallpaperService() {
         private var isReady = false
         private var videoDuration = 0
         private var isLocked = true
-        private var lastUnlockTime = 0L
+        private var currentMode = MODE_UNLOCK
+        private var currentSurfaceHolder: SurfaceHolder? = null
         private val handler = Handler(Looper.getMainLooper())
 
         private val unlockReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
                 when (intent.action) {
                     Intent.ACTION_SCREEN_OFF -> {
-                        // الشاشة أُقفلت فعلاً
                         isLocked = true
-                        showFirstFrame()
+                        when (currentMode) {
+                            MODE_UNLOCK -> showFirstFrame()
+                            MODE_LOCKSCREEN -> {
+                                // أعد تجهيز الفيديو لتشغيله في القفل
+                                showFirstFrame()
+                            }
+                        }
                     }
-                    Intent.ACTION_USER_PRESENT -> {
-                        // فُتح القفل — لكن فقط إذا كان مقفلاً فعلاً
-                        if (isLocked) {
-                            isLocked = false
-                            lastUnlockTime = System.currentTimeMillis()
+                    Intent.ACTION_SCREEN_ON -> {
+                        if (currentMode == MODE_LOCKSCREEN && isLocked) {
+                            // شاشة القفل ظهرت — شغّل الفيديو مرة واحدة
                             playVideo()
                         }
-                        // إذا لم يكن مقفلاً (مثل Gemini) — تجاهل
+                    }
+                    Intent.ACTION_USER_PRESENT -> {
+                        if (currentMode == MODE_UNLOCK && isLocked) {
+                            isLocked = false
+                            playVideo()
+                        } else {
+                            isLocked = false
+                        }
+                    }
+                    ACTION_RELOAD -> {
+                        // تحديث فوري من التطبيق
+                        val prefs = getSharedPreferences("wallpaper_prefs", MODE_PRIVATE)
+                        currentMode = prefs.getString("play_mode", MODE_UNLOCK) ?: MODE_UNLOCK
+                        currentSurfaceHolder?.let { reloadVideo(it) }
+                        notifyColorsChanged()
                     }
                 }
             }
@@ -50,9 +74,14 @@ class VideoWallpaperService : WallpaperService() {
         override fun onCreate(holder: SurfaceHolder) {
             super.onCreate(holder)
             setTouchEventsEnabled(false)
+            val prefs = getSharedPreferences("wallpaper_prefs", MODE_PRIVATE)
+            currentMode = prefs.getString("play_mode", MODE_UNLOCK) ?: MODE_UNLOCK
+
             val filter = IntentFilter().apply {
                 addAction(Intent.ACTION_USER_PRESENT)
                 addAction(Intent.ACTION_SCREEN_OFF)
+                addAction(Intent.ACTION_SCREEN_ON)
+                addAction(ACTION_RELOAD)
             }
             registerReceiver(unlockReceiver, filter)
         }
@@ -66,12 +95,14 @@ class VideoWallpaperService : WallpaperService() {
         override fun onSurfaceCreated(holder: SurfaceHolder) {
             super.onSurfaceCreated(holder)
             holder.setSizeFromLayout()
+            currentSurfaceHolder = holder
             setupMediaPlayer(holder)
         }
 
         override fun onSurfaceDestroyed(holder: SurfaceHolder) {
             super.onSurfaceDestroyed(holder)
             releasePlayer()
+            currentSurfaceHolder = null
         }
 
         override fun onVisibilityChanged(visible: Boolean) {}
@@ -114,6 +145,12 @@ class VideoWallpaperService : WallpaperService() {
             }
         }
 
+        private fun reloadVideo(holder: SurfaceHolder) {
+            handler.post {
+                setupMediaPlayer(holder)
+            }
+        }
+
         private fun playVideo() {
             handler.post {
                 try {
@@ -123,9 +160,7 @@ class VideoWallpaperService : WallpaperService() {
                     player.start()
                     val stopAt = (videoDuration - 100).coerceAtLeast(0).toLong()
                     handler.postDelayed({
-                        try {
-                            if (player.isPlaying) player.pause()
-                        } catch (e: Exception) {}
+                        try { if (player.isPlaying) player.pause() } catch (e: Exception) {}
                     }, stopAt)
                 } catch (e: Exception) {
                     e.printStackTrace()

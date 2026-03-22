@@ -20,6 +20,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnSetWallpaper: Button
     private lateinit var btnPickColor: Button
     private lateinit var btnReset: Button
+    private lateinit var switchMode: Switch
+    private lateinit var tvMode: TextView
     private lateinit var colorPreview: View
     private var selectedColor = Color.parseColor("#6200EE")
 
@@ -38,11 +40,18 @@ class MainActivity : AppCompatActivity() {
         btnSetWallpaper = findViewById(R.id.btnSetWallpaper)
         btnPickColor = findViewById(R.id.btnPickColor)
         btnReset = findViewById(R.id.btnReset)
+        switchMode = findViewById(R.id.switchMode)
+        tvMode = findViewById(R.id.tvMode)
         colorPreview = findViewById(R.id.colorPreview)
 
         val prefs = getSharedPreferences("wallpaper_prefs", MODE_PRIVATE)
         selectedColor = prefs.getInt("accent_color", Color.parseColor("#6200EE"))
         updateColorUI()
+
+        // استرجع الوضع المحفوظ
+        val savedMode = prefs.getString("play_mode", VideoWallpaperService.MODE_UNLOCK)
+        switchMode.isChecked = savedMode == VideoWallpaperService.MODE_LOCKSCREEN
+        updateModeText(switchMode.isChecked)
 
         val savedUri = prefs.getString(PREF_VIDEO_URI, null)
         if (savedUri != null) {
@@ -72,22 +81,29 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
+        switchMode.setOnCheckedChangeListener { _, isChecked ->
+            val mode = if (isChecked)
+                VideoWallpaperService.MODE_LOCKSCREEN
+            else
+                VideoWallpaperService.MODE_UNLOCK
+            prefs.edit().putString("play_mode", mode).apply()
+            updateModeText(isChecked)
+            // تحديث فوري
+            sendReload()
+        }
+
         btnReset.setOnClickListener {
             AlertDialog.Builder(this)
                 .setTitle(getString(R.string.reset_title))
                 .setMessage(getString(R.string.reset_message))
                 .setPositiveButton(getString(R.string.yes)) { _, _ ->
-                    // مسح كل البيانات
-                    val prefs = getSharedPreferences("wallpaper_prefs", MODE_PRIVATE)
-                    prefs.edit().clear().apply()
+                    prefs.edit().remove(PREF_VIDEO_URI).apply()
                     selectedColor = Color.parseColor("#6200EE")
+                    prefs.edit().putInt("accent_color", selectedColor).apply()
                     updateColorUI()
                     tvStatus.text = getString(R.string.no_video)
                     btnSetWallpaper.isEnabled = false
-                    try {
-                        val wm = WallpaperManager.getInstance(this)
-                        wm.clear()
-                    } catch(e: Exception) {}
+                    sendReload()
                     Toast.makeText(this,
                         getString(R.string.reset_done),
                         Toast.LENGTH_SHORT).show()
@@ -97,17 +113,27 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun updateModeText(isLockscreen: Boolean) {
+        tvMode.text = if (isLockscreen)
+            "🔒 Lockscreen mode"
+        else
+            "🏠 Unlock mode"
+    }
+
+    private fun sendReload() {
+        // تحديث فوري للـ Service
+        val intent = Intent(VideoWallpaperService.ACTION_RELOAD)
+        sendBroadcast(intent)
+    }
+
     private fun showColorWheelDialog() {
         val dialogView = layoutInflater.inflate(R.layout.dialog_color_wheel, null)
-
         val colorWheel = dialogView.findViewById<ColorWheelView>(R.id.colorWheel)
         val sbBrightness = dialogView.findViewById<SeekBar>(R.id.sbBrightness)
         val tvHexCode = dialogView.findViewById<TextView>(R.id.tvHexCode)
         val previewBar = dialogView.findViewById<View>(R.id.previewBar)
 
         var currentColor = selectedColor
-
-        // تهيئة
         val hsv = FloatArray(3)
         Color.colorToHSV(selectedColor, hsv)
         sbBrightness.progress = (hsv[2] * 100).toInt()
@@ -140,6 +166,8 @@ class MainActivity : AppCompatActivity() {
                 val prefs = getSharedPreferences("wallpaper_prefs", MODE_PRIVATE)
                 prefs.edit().putInt("accent_color", selectedColor).apply()
                 updateColorUI()
+                // تحديث فوري للون
+                sendReload()
                 Toast.makeText(this,
                     getString(R.string.color_saved),
                     Toast.LENGTH_SHORT).show()
@@ -178,6 +206,8 @@ class MainActivity : AppCompatActivity() {
                 tvStatus.text = getString(R.string.video_selected)
                 btnSetWallpaper.isEnabled = true
                 updateColorUI()
+                // تحديث فوري للفيديو
+                sendReload()
             }
         }
     }
