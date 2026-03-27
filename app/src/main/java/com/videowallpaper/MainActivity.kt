@@ -49,8 +49,8 @@ class MainActivity : AppCompatActivity() {
         updateColorUI()
 
         // استرجع الوضع المحفوظ
-        val savedMode = prefs.getString("play_mode", VideoWallpaperService.MODE_UNLOCK)
-        switchMode.isChecked = savedMode == VideoWallpaperService.MODE_LOCKSCREEN
+        val savedMode = prefs.getString("play_mode", "unlock")
+        switchMode.isChecked = savedMode == "lockscreen"
         updateModeText(switchMode.isChecked)
 
         val savedUri = prefs.getString(PREF_VIDEO_URI, null)
@@ -83,9 +83,9 @@ class MainActivity : AppCompatActivity() {
 
         switchMode.setOnCheckedChangeListener { _, isChecked ->
             val mode = if (isChecked)
-                VideoWallpaperService.MODE_LOCKSCREEN
+                "lockscreen"
             else
-                VideoWallpaperService.MODE_UNLOCK
+                "unlock"
             prefs.edit().putString("play_mode", mode).apply()
             updateModeText(isChecked)
             // تحديث فوري
