@@ -37,7 +37,6 @@
                 android:textColor="#FFFFFF"
                 android:textSize="28sp"
                 android:textStyle="bold"
-                android:letterSpacing="0.05"
                 android:layout_marginBottom="4dp"/>
 
             <TextView
@@ -46,46 +45,7 @@
                 android:text="Transition"
                 android:textColor="#80FFFFFF"
                 android:textSize="18sp"
-                android:letterSpacing="0.1"
                 android:layout_marginBottom="48dp"/>
-
-            <!-- بطاقة الفيديو -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="20dp"
-                android:layout_marginBottom="16dp"
-                android:background="@drawable/glass_card">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/video_label"
-                    android:textColor="#80FFFFFF"
-                    android:textSize="11sp"
-                    android:letterSpacing="0.15"
-                    android:layout_marginBottom="8dp"/>
-
-                <TextView
-                    android:id="@+id/tvStatus"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/no_video"
-                    android:textColor="#FFFFFF"
-                    android:textSize="16sp"
-                    android:layout_marginBottom="16dp"/>
-
-                <Button
-                    android:id="@+id/btnSelectVideo"
-                    android:layout_width="match_parent"
-                    android:layout_height="50dp"
-                    android:text="@string/choose_video"
-                    android:textColor="#FFFFFF"
-                    android:textSize="15sp"
-                    android:background="@drawable/btn_glass"/>
-
-            </LinearLayout>
 
             <!-- بطاقة الوضع -->
             <LinearLayout
@@ -116,12 +76,12 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="🏠 Unlock mode"
+                        android:text="🎬 فيديو واحد"
                         android:textColor="#FFFFFF"
                         android:textSize="15sp"/>
 
                     <Switch
-                        android:id="@+id/switchMode"
+                        android:id="@+id/switchDualMode"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:thumbTint="#FFFFFF"
@@ -129,13 +89,83 @@
 
                 </LinearLayout>
 
+            </LinearLayout>
+
+            <!-- بطاقة فيديو Lock -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/glass_card">
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/frame_hint"
-                    android:textColor="#40FFFFFF"
+                    android:text="🔒 LOCK SCREEN VIDEO"
+                    android:textColor="#80FFFFFF"
                     android:textSize="11sp"
-                    android:layout_marginTop="8dp"/>
+                    android:letterSpacing="0.15"
+                    android:layout_marginBottom="8dp"/>
+
+                <TextView
+                    android:id="@+id/tvStatusLock"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/no_video"
+                    android:textColor="#FF5555"
+                    android:textSize="14sp"
+                    android:layout_marginBottom="12dp"/>
+
+                <Button
+                    android:id="@+id/btnSelectLock"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:text="@string/choose_video"
+                    android:textColor="#FFFFFF"
+                    android:textSize="15sp"
+                    android:background="@drawable/btn_glass"/>
+
+            </LinearLayout>
+
+            <!-- بطاقة فيديو Unlock — تظهر فقط في الوضع المزدوج -->
+            <LinearLayout
+                android:id="@+id/cardUnlock"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/glass_card"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🏠 UNLOCK VIDEO"
+                    android:textColor="#80FFFFFF"
+                    android:textSize="11sp"
+                    android:letterSpacing="0.15"
+                    android:layout_marginBottom="8dp"/>
+
+                <TextView
+                    android:id="@+id/tvStatusUnlock"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/no_video"
+                    android:textColor="#FF5555"
+                    android:textSize="14sp"
+                    android:layout_marginBottom="12dp"/>
+
+                <Button
+                    android:id="@+id/btnSelectUnlock"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:text="@string/choose_video"
+                    android:textColor="#FFFFFF"
+                    android:textSize="15sp"
+                    android:background="@drawable/btn_glass"/>
 
             </LinearLayout>
 
@@ -216,6 +246,13 @@
                 android:textSize="15sp"
                 android:background="@drawable/btn_glass"
                 android:layout_marginBottom="24dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/frame_hint"
+                android:textColor="#40FFFFFF"
+                android:textSize="12sp"/>
 
         </LinearLayout>
     </ScrollView>
