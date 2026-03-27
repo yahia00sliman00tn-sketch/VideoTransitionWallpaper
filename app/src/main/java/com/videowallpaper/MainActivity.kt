@@ -14,57 +14,86 @@ import androidx.appcompat.app.AppCompatActivity
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var tvStatus: TextView
+    private lateinit var tvStatusLock: TextView
+    private lateinit var tvStatusUnlock: TextView
     private lateinit var tvColorHex: TextView
-    private lateinit var btnSelectVideo: Button
+    private lateinit var tvMode: TextView
+    private lateinit var btnSelectLock: Button
+    private lateinit var btnSelectUnlock: Button
     private lateinit var btnSetWallpaper: Button
     private lateinit var btnPickColor: Button
     private lateinit var btnReset: Button
-    private lateinit var switchMode: Switch
-    private lateinit var tvMode: TextView
+    private lateinit var switchDualMode: Switch
+    private lateinit var cardUnlock: LinearLayout
     private lateinit var colorPreview: View
     private var selectedColor = Color.parseColor("#6200EE")
+    private var isDualMode = false
 
     companion object {
-        const val REQUEST_VIDEO = 1001
+        const val REQUEST_VIDEO_LOCK = 1001
+        const val REQUEST_VIDEO_UNLOCK = 1002
         const val PREF_VIDEO_URI = "video_uri"
+        const val PREF_VIDEO_URI_LOCK = "video_uri_lock"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        tvStatus = findViewById(R.id.tvStatus)
+        tvStatusLock = findViewById(R.id.tvStatusLock)
+        tvStatusUnlock = findViewById(R.id.tvStatusUnlock)
         tvColorHex = findViewById(R.id.tvColorHex)
-        btnSelectVideo = findViewById(R.id.btnSelectVideo)
+        tvMode = findViewById(R.id.tvMode)
+        btnSelectLock = findViewById(R.id.btnSelectLock)
+        btnSelectUnlock = findViewById(R.id.btnSelectUnlock)
         btnSetWallpaper = findViewById(R.id.btnSetWallpaper)
         btnPickColor = findViewById(R.id.btnPickColor)
         btnReset = findViewById(R.id.btnReset)
-        switchMode = findViewById(R.id.switchMode)
-        tvMode = findViewById(R.id.tvMode)
+        switchDualMode = findViewById(R.id.switchDualMode)
+        cardUnlock = findViewById(R.id.cardUnlock)
         colorPreview = findViewById(R.id.colorPreview)
 
         val prefs = getSharedPreferences("wallpaper_prefs", MODE_PRIVATE)
         selectedColor = prefs.getInt("accent_color", Color.parseColor("#6200EE"))
+        isDualMode = prefs.getBoolean("dual_mode", false)
         updateColorUI()
 
-        // استرجع الوضع المحفوظ
-        val savedMode = prefs.getString("play_mode", VideoWallpaperService.MODE_UNLOCK)
-        switchMode.isChecked = savedMode == VideoWallpaperService.MODE_LOCKSCREEN
-        updateModeText(switchMode.isChecked)
-
-        val savedUri = prefs.getString(PREF_VIDEO_URI, null)
-        if (savedUri != null) {
-            tvStatus.text = getString(R.string.video_selected)
-            btnSetWallpaper.isEnabled = true
+        // استرجع الحالة
+        if (prefs.getString(PREF_VIDEO_URI_LOCK, null) != null) {
+            tvStatusLock.text = "تم الاختيار ✓"
+            tvStatusLock.setTextColor(Color.parseColor("#1DB954"))
+        }
+        if (prefs.getString(PREF_VIDEO_URI, null) != null) {
+            tvStatusUnlock.text = "تم الاختيار ✓"
+            tvStatusUnlock.setTextColor(Color.parseColor("#1DB954"))
         }
 
-        btnSelectVideo.setOnClickListener {
+        // تطبيق الوضع المحفوظ
+        switchDualMode.isChecked = isDualMode
+        updateDualMode(isDualMode)
+        updateSetButton()
+
+        switchDualMode.setOnCheckedChangeListener { _, isChecked ->
+            isDualMode = isChecked
+            prefs.edit().putBoolean("dual_mode", isDualMode).apply()
+            updateDualMode(isDualMode)
+            sendReload()
+        }
+
+        btnSelectLock.setOnClickListener {
             val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
                 addCategory(Intent.CATEGORY_OPENABLE)
                 type = "video/*"
             }
-            startActivityForResult(intent, REQUEST_VIDEO)
+            startActivityForResult(intent, REQUEST_VIDEO_LOCK)
+        }
+
+        btnSelectUnlock.setOnClickListener {
+            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                addCategory(Intent.CATEGORY_OPENABLE)
+                type = "video/*"
+            }
+            startActivityForResult(intent, REQUEST_VIDEO_UNLOCK)
         }
 
         btnPickColor.setOnClickListener {
@@ -81,28 +110,22 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        switchMode.setOnCheckedChangeListener { _, isChecked ->
-            val mode = if (isChecked)
-                VideoWallpaperService.MODE_LOCKSCREEN
-            else
-                VideoWallpaperService.MODE_UNLOCK
-            prefs.edit().putString("play_mode", mode).apply()
-            updateModeText(isChecked)
-            // تحديث فوري
-            sendReload()
-        }
-
         btnReset.setOnClickListener {
             AlertDialog.Builder(this)
                 .setTitle(getString(R.string.reset_title))
                 .setMessage(getString(R.string.reset_message))
                 .setPositiveButton(getString(R.string.yes)) { _, _ ->
-                    prefs.edit().remove(PREF_VIDEO_URI).apply()
+                    prefs.edit().clear().apply()
                     selectedColor = Color.parseColor("#6200EE")
-                    prefs.edit().putInt("accent_color", selectedColor).apply()
+                    isDualMode = false
+                    switchDualMode.isChecked = false
+                    updateDualMode(false)
                     updateColorUI()
-                    tvStatus.text = getString(R.string.no_video)
-                    btnSetWallpaper.isEnabled = false
+                    tvStatusLock.text = getString(R.string.no_video)
+                    tvStatusLock.setTextColor(Color.parseColor("#FF5555"))
+                    tvStatusUnlock.text = getString(R.string.no_video)
+                    tvStatusUnlock.setTextColor(Color.parseColor("#FF5555"))
+                    updateSetButton()
                     sendReload()
                     Toast.makeText(this,
                         getString(R.string.reset_done),
@@ -113,17 +136,20 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun updateModeText(isLockscreen: Boolean) {
-        tvMode.text = if (isLockscreen)
-            "🔒 Lockscreen mode"
-        else
-            "🏠 Unlock mode"
+    private fun updateDualMode(dual: Boolean) {
+        cardUnlock.visibility = if (dual) View.VISIBLE else View.GONE
+        tvMode.text = if (dual) "🎬🎬 فيديوين — مرحلتين" else "🎬 فيديو واحد"
+    }
+
+    private fun updateSetButton() {
+        val prefs = getSharedPreferences("wallpaper_prefs", MODE_PRIVATE)
+        val hasLock = prefs.getString(PREF_VIDEO_URI_LOCK, null) != null
+        val hasUnlock = prefs.getString(PREF_VIDEO_URI, null) != null
+        btnSetWallpaper.isEnabled = hasLock || hasUnlock
     }
 
     private fun sendReload() {
-        // تحديث فوري للـ Service
-        val intent = Intent(VideoWallpaperService.ACTION_RELOAD)
-        sendBroadcast(intent)
+        sendBroadcast(Intent(VideoWallpaperService.ACTION_RELOAD))
     }
 
     private fun showColorWheelDialog() {
@@ -145,10 +171,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         updatePreview(selectedColor)
-
-        colorWheel.onColorChanged = { color ->
-            updatePreview(color)
-        }
+        colorWheel.onColorChanged = { color -> updatePreview(color) }
 
         sbBrightness.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(sb: SeekBar, v: Int, u: Boolean) {
@@ -166,7 +189,6 @@ class MainActivity : AppCompatActivity() {
                 val prefs = getSharedPreferences("wallpaper_prefs", MODE_PRIVATE)
                 prefs.edit().putInt("accent_color", selectedColor).apply()
                 updateColorUI()
-                // تحديث فوري للون
                 sendReload()
                 Toast.makeText(this,
                     getString(R.string.color_saved),
@@ -195,20 +217,26 @@ class MainActivity : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQUEST_VIDEO && resultCode == RESULT_OK) {
-            val uri: Uri? = data?.data
-            if (uri != null) {
-                contentResolver.takePersistableUriPermission(
-                    uri, Intent.FLAG_GRANT_READ_URI_PERMISSION
-                )
-                val prefs = getSharedPreferences("wallpaper_prefs", MODE_PRIVATE)
+        if (resultCode != RESULT_OK) return
+        val uri: Uri = data?.data ?: return
+        contentResolver.takePersistableUriPermission(
+            uri, Intent.FLAG_GRANT_READ_URI_PERMISSION
+        )
+        val prefs = getSharedPreferences("wallpaper_prefs", MODE_PRIVATE)
+        when (requestCode) {
+            REQUEST_VIDEO_LOCK -> {
+                prefs.edit().putString(PREF_VIDEO_URI_LOCK, uri.toString()).apply()
+                tvStatusLock.text = "تم الاختيار ✓"
+                tvStatusLock.setTextColor(Color.parseColor("#1DB954"))
+                sendReload()
+            }
+            REQUEST_VIDEO_UNLOCK -> {
                 prefs.edit().putString(PREF_VIDEO_URI, uri.toString()).apply()
-                tvStatus.text = getString(R.string.video_selected)
-                btnSetWallpaper.isEnabled = true
-                updateColorUI()
-                // تحديث فوري للفيديو
+                tvStatusUnlock.text = "تم الاختيار ✓"
+                tvStatusUnlock.setTextColor(Color.parseColor("#1DB954"))
                 sendReload()
             }
         }
+        updateSetButton()
     }
 }
