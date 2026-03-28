@@ -91,8 +91,9 @@
 
             </LinearLayout>
 
-            <!-- بطاقة فيديو Lock -->
+            <!-- ===== وضع واحد ===== -->
             <LinearLayout
+                android:id="@+id/cardSingle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
@@ -103,14 +104,14 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="🔒 LOCK SCREEN VIDEO"
+                    android:text="VIDEO"
                     android:textColor="#80FFFFFF"
                     android:textSize="11sp"
                     android:letterSpacing="0.15"
                     android:layout_marginBottom="8dp"/>
 
                 <TextView
-                    android:id="@+id/tvStatusLock"
+                    android:id="@+id/tvStatusSingle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/no_video"
@@ -119,53 +120,135 @@
                     android:layout_marginBottom="12dp"/>
 
                 <Button
-                    android:id="@+id/btnSelectLock"
+                    android:id="@+id/btnSelectSingle"
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
                     android:text="@string/choose_video"
                     android:textColor="#FFFFFF"
                     android:textSize="15sp"
-                    android:background="@drawable/btn_glass"/>
+                    android:background="@drawable/btn_glass"
+                    android:layout_marginBottom="16dp"/>
+
+                <!-- يشتغل على -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="يشتغل على:"
+                    android:textColor="#80FFFFFF"
+                    android:textSize="12sp"
+                    android:layout_marginBottom="8dp"/>
+
+                <RadioGroup
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <RadioButton
+                        android:id="@+id/radioLock"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="🔒 Lock Screen"
+                        android:textColor="#FFFFFF"
+                        android:buttonTint="#FFFFFF"/>
+
+                    <RadioButton
+                        android:id="@+id/radioHome"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="🏠 Home Screen"
+                        android:textColor="#FFFFFF"
+                        android:buttonTint="#FFFFFF"
+                        android:checked="true"/>
+
+                </RadioGroup>
 
             </LinearLayout>
 
-            <!-- بطاقة فيديو Unlock — تظهر فقط في الوضع المزدوج -->
+            <!-- ===== وضع مزدوج ===== -->
             <LinearLayout
-                android:id="@+id/cardUnlock"
+                android:id="@+id/cardDual"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="20dp"
                 android:layout_marginBottom="16dp"
-                android:background="@drawable/glass_card"
                 android:visibility="gone">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="🏠 UNLOCK VIDEO"
-                    android:textColor="#80FFFFFF"
-                    android:textSize="11sp"
-                    android:letterSpacing="0.15"
-                    android:layout_marginBottom="8dp"/>
-
-                <TextView
-                    android:id="@+id/tvStatusUnlock"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/no_video"
-                    android:textColor="#FF5555"
-                    android:textSize="14sp"
-                    android:layout_marginBottom="12dp"/>
-
-                <Button
-                    android:id="@+id/btnSelectUnlock"
+                <!-- فيديو Lock -->
+                <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="50dp"
-                    android:text="@string/choose_video"
-                    android:textColor="#FFFFFF"
-                    android:textSize="15sp"
-                    android:background="@drawable/btn_glass"/>
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp"
+                    android:layout_marginBottom="12dp"
+                    android:background="@drawable/glass_card">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🔒 LOCK SCREEN VIDEO"
+                        android:textColor="#80FFFFFF"
+                        android:textSize="11sp"
+                        android:letterSpacing="0.15"
+                        android:layout_marginBottom="8dp"/>
+
+                    <TextView
+                        android:id="@+id/tvStatusLock"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/no_video"
+                        android:textColor="#FF5555"
+                        android:textSize="14sp"
+                        android:layout_marginBottom="12dp"/>
+
+                    <Button
+                        android:id="@+id/btnSelectLock"
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp"
+                        android:text="@string/choose_video"
+                        android:textColor="#FFFFFF"
+                        android:textSize="15sp"
+                        android:background="@drawable/btn_glass"/>
+
+                </LinearLayout>
+
+                <!-- فيديو Home -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp"
+                    android:background="@drawable/glass_card">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🏠 HOME SCREEN VIDEO"
+                        android:textColor="#80FFFFFF"
+                        android:textSize="11sp"
+                        android:letterSpacing="0.15"
+                        android:layout_marginBottom="8dp"/>
+
+                    <TextView
+                        android:id="@+id/tvStatusHome"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/no_video"
+                        android:textColor="#FF5555"
+                        android:textSize="14sp"
+                        android:layout_marginBottom="12dp"/>
+
+                    <Button
+                        android:id="@+id/btnSelectHome"
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp"
+                        android:text="@string/choose_video"
+                        android:textColor="#FFFFFF"
+                        android:textSize="15sp"
+                        android:background="@drawable/btn_glass"/>
+
+                </LinearLayout>
 
             </LinearLayout>
 

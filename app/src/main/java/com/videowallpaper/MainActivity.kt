@@ -14,74 +14,124 @@ import androidx.appcompat.app.AppCompatActivity
 
 class MainActivity : AppCompatActivity() {
 
+    // وضع واحد
+    private lateinit var cardSingle: LinearLayout
+    private lateinit var tvStatusSingle: TextView
+    private lateinit var btnSelectSingle: Button
+    private lateinit var radioLock: RadioButton
+    private lateinit var radioHome: RadioButton
+
+    // وضع مزدوج
+    private lateinit var cardDual: LinearLayout
     private lateinit var tvStatusLock: TextView
-    private lateinit var tvStatusUnlock: TextView
-    private lateinit var tvColorHex: TextView
-    private lateinit var tvMode: TextView
+    private lateinit var tvStatusHome: TextView
     private lateinit var btnSelectLock: Button
-    private lateinit var btnSelectUnlock: Button
+    private lateinit var btnSelectHome: Button
+
+    // مشترك
+    private lateinit var tvMode: TextView
+    private lateinit var tvColorHex: TextView
     private lateinit var btnSetWallpaper: Button
     private lateinit var btnPickColor: Button
     private lateinit var btnReset: Button
     private lateinit var switchDualMode: Switch
-    private lateinit var cardUnlock: LinearLayout
     private lateinit var colorPreview: View
     private var selectedColor = Color.parseColor("#6200EE")
+    private var isDual = false
 
     companion object {
-        const val REQUEST_VIDEO_LOCK = 1001
-        const val REQUEST_VIDEO_UNLOCK = 1002
-        const val PREF_VIDEO_URI = "video_uri_lock"
+        const val REQ_SINGLE = 1001
+        const val REQ_LOCK   = 1002
+        const val REQ_HOME   = 1003
+        // للتوافق
+        const val PREF_VIDEO_URI = VideoWallpaperService.KEY_SINGLE_VIDEO
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        tvStatusLock   = findViewById(R.id.tvStatusLock)
-        tvStatusUnlock = findViewById(R.id.tvStatusUnlock)
-        tvColorHex     = findViewById(R.id.tvColorHex)
-        tvMode         = findViewById(R.id.tvMode)
-        btnSelectLock  = findViewById(R.id.btnSelectLock)
-        btnSelectUnlock= findViewById(R.id.btnSelectUnlock)
-        btnSetWallpaper= findViewById(R.id.btnSetWallpaper)
-        btnPickColor   = findViewById(R.id.btnPickColor)
-        btnReset       = findViewById(R.id.btnReset)
-        switchDualMode = findViewById(R.id.switchDualMode)
-        cardUnlock     = findViewById(R.id.cardUnlock)
-        colorPreview   = findViewById(R.id.colorPreview)
+        // وضع واحد
+        cardSingle      = findViewById(R.id.cardSingle)
+        tvStatusSingle  = findViewById(R.id.tvStatusSingle)
+        btnSelectSingle = findViewById(R.id.btnSelectSingle)
+        radioLock       = findViewById(R.id.radioLock)
+        radioHome       = findViewById(R.id.radioHome)
+
+        // وضع مزدوج
+        cardDual        = findViewById(R.id.cardDual)
+        tvStatusLock    = findViewById(R.id.tvStatusLock)
+        tvStatusHome    = findViewById(R.id.tvStatusHome)
+        btnSelectLock   = findViewById(R.id.btnSelectLock)
+        btnSelectHome   = findViewById(R.id.btnSelectHome)
+
+        // مشترك
+        tvMode          = findViewById(R.id.tvMode)
+        tvColorHex      = findViewById(R.id.tvColorHex)
+        btnSetWallpaper = findViewById(R.id.btnSetWallpaper)
+        btnPickColor    = findViewById(R.id.btnPickColor)
+        btnReset        = findViewById(R.id.btnReset)
+        switchDualMode  = findViewById(R.id.switchDualMode)
+        colorPreview    = findViewById(R.id.colorPreview)
 
         val prefs = getSharedPreferences(VideoWallpaperService.PREF_NAME, MODE_PRIVATE)
         selectedColor = prefs.getInt(VideoWallpaperService.KEY_COLOR, Color.parseColor("#6200EE"))
+        isDual = prefs.getBoolean(VideoWallpaperService.KEY_DUAL_MODE, false)
+        val target = prefs.getString(VideoWallpaperService.KEY_SINGLE_TARGET, "home") ?: "home"
+
         updateColorUI()
+        switchDualMode.isChecked = isDual
+        updateMode(isDual)
+
+        if (target == "lock") radioLock.isChecked = true
+        else radioHome.isChecked = true
 
         // استرجع الحالة
-        val isDual = prefs.getBoolean(VideoWallpaperService.KEY_DUAL_MODE, false)
-        switchDualMode.isChecked = isDual
-        updateDualMode(isDual)
-
+        if (prefs.getString(VideoWallpaperService.KEY_SINGLE_VIDEO, null) != null) {
+            tvStatusSingle.text = "تم الاختيار ✓"
+            tvStatusSingle.setTextColor(0xFF1DB954.toInt())
+        }
         if (prefs.getString(VideoWallpaperService.KEY_VIDEO_LOCK, null) != null) {
             tvStatusLock.text = "تم الاختيار ✓"
             tvStatusLock.setTextColor(0xFF1DB954.toInt())
         }
-        if (prefs.getString(VideoWallpaperService.KEY_VIDEO_UNLOCK, null) != null) {
-            tvStatusUnlock.text = "تم الاختيار ✓"
-            tvStatusUnlock.setTextColor(0xFF1DB954.toInt())
+        if (prefs.getString(VideoWallpaperService.KEY_VIDEO_HOME, null) != null) {
+            tvStatusHome.text = "تم الاختيار ✓"
+            tvStatusHome.setTextColor(0xFF1DB954.toInt())
         }
         updateSetButton()
 
+        // Switch
         switchDualMode.setOnCheckedChangeListener { _, isChecked ->
-            prefs.edit().putBoolean(VideoWallpaperService.KEY_DUAL_MODE, isChecked).apply()
-            updateDualMode(isChecked)
+            isDual = isChecked
+            prefs.edit().putBoolean(VideoWallpaperService.KEY_DUAL_MODE, isDual).apply()
+            updateMode(isDual)
             sendReload()
         }
 
-        btnSelectLock.setOnClickListener {
-            startActivityForResult(videoPickerIntent(), REQUEST_VIDEO_LOCK)
+        // Radio buttons
+        radioLock.setOnCheckedChangeListener { _, checked ->
+            if (checked) {
+                prefs.edit().putString(VideoWallpaperService.KEY_SINGLE_TARGET, "lock").apply()
+                sendReload()
+            }
+        }
+        radioHome.setOnCheckedChangeListener { _, checked ->
+            if (checked) {
+                prefs.edit().putString(VideoWallpaperService.KEY_SINGLE_TARGET, "home").apply()
+                sendReload()
+            }
         }
 
-        btnSelectUnlock.setOnClickListener {
-            startActivityForResult(videoPickerIntent(), REQUEST_VIDEO_UNLOCK)
+        // أزرار الاختيار
+        btnSelectSingle.setOnClickListener {
+            startActivityForResult(videoPicker(), REQ_SINGLE)
+        }
+        btnSelectLock.setOnClickListener {
+            startActivityForResult(videoPicker(), REQ_LOCK)
+        }
+        btnSelectHome.setOnClickListener {
+            startActivityForResult(videoPicker(), REQ_HOME)
         }
 
         btnPickColor.setOnClickListener { showColorWheelDialog() }
@@ -102,13 +152,17 @@ class MainActivity : AppCompatActivity() {
                 .setPositiveButton(getString(R.string.yes)) { _, _ ->
                     prefs.edit().clear().apply()
                     selectedColor = Color.parseColor("#6200EE")
+                    isDual = false
                     switchDualMode.isChecked = false
-                    updateDualMode(false)
+                    radioHome.isChecked = true
+                    updateMode(false)
                     updateColorUI()
+                    tvStatusSingle.text = getString(R.string.no_video)
+                    tvStatusSingle.setTextColor(0xFFFF5555.toInt())
                     tvStatusLock.text = getString(R.string.no_video)
                     tvStatusLock.setTextColor(0xFFFF5555.toInt())
-                    tvStatusUnlock.text = getString(R.string.no_video)
-                    tvStatusUnlock.setTextColor(0xFFFF5555.toInt())
+                    tvStatusHome.text = getString(R.string.no_video)
+                    tvStatusHome.setTextColor(0xFFFF5555.toInt())
                     updateSetButton()
                     sendReload()
                     Toast.makeText(this, getString(R.string.reset_done), Toast.LENGTH_SHORT).show()
@@ -118,32 +172,37 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun videoPickerIntent() = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-        addCategory(Intent.CATEGORY_OPENABLE)
-        type = "video/*"
-    }
-
-    private fun updateDualMode(dual: Boolean) {
-        cardUnlock.visibility = if (dual) View.VISIBLE else View.GONE
-        tvMode.text = if (dual) "🎬🎬 مرحلتان — Vivo style" else "🎬 فيديو واحد"
+    private fun updateMode(dual: Boolean) {
+        cardSingle.visibility = if (dual) View.GONE else View.VISIBLE
+        cardDual.visibility   = if (dual) View.VISIBLE else View.GONE
+        tvMode.text = if (dual) "🎬🎬 وضع مزدوج — Vivo Style" else "🎬 فيديو واحد"
     }
 
     private fun updateSetButton() {
         val prefs = getSharedPreferences(VideoWallpaperService.PREF_NAME, MODE_PRIVATE)
-        btnSetWallpaper.isEnabled =
-            prefs.getString(VideoWallpaperService.KEY_VIDEO_LOCK, null) != null
+        btnSetWallpaper.isEnabled = if (isDual) {
+            prefs.getString(VideoWallpaperService.KEY_VIDEO_LOCK, null) != null ||
+            prefs.getString(VideoWallpaperService.KEY_VIDEO_HOME, null) != null
+        } else {
+            prefs.getString(VideoWallpaperService.KEY_SINGLE_VIDEO, null) != null
+        }
     }
 
     private fun sendReload() {
         sendBroadcast(Intent(VideoWallpaperService.ACTION_RELOAD))
     }
 
+    private fun videoPicker() = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+        addCategory(Intent.CATEGORY_OPENABLE)
+        type = "video/*"
+    }
+
     private fun showColorWheelDialog() {
         val dialogView = layoutInflater.inflate(R.layout.dialog_color_wheel, null)
-        val colorWheel  = dialogView.findViewById<ColorWheelView>(R.id.colorWheel)
-        val sbBrightness= dialogView.findViewById<SeekBar>(R.id.sbBrightness)
-        val tvHexCode   = dialogView.findViewById<TextView>(R.id.tvHexCode)
-        val previewBar  = dialogView.findViewById<View>(R.id.previewBar)
+        val colorWheel   = dialogView.findViewById<ColorWheelView>(R.id.colorWheel)
+        val sbBrightness = dialogView.findViewById<SeekBar>(R.id.sbBrightness)
+        val tvHexCode    = dialogView.findViewById<TextView>(R.id.tvHexCode)
+        val previewBar   = dialogView.findViewById<View>(R.id.previewBar)
 
         var currentColor = selectedColor
         val hsv = FloatArray(3)
@@ -158,7 +217,6 @@ class MainActivity : AppCompatActivity() {
 
         updatePreview(selectedColor)
         colorWheel.onColorChanged = { color -> updatePreview(color) }
-
         sbBrightness.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(sb: SeekBar, v: Int, u: Boolean) {
                 colorWheel.setBrightness(v / 100f)
@@ -203,15 +261,20 @@ class MainActivity : AppCompatActivity() {
         contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
         val prefs = getSharedPreferences(VideoWallpaperService.PREF_NAME, MODE_PRIVATE)
         when (requestCode) {
-            REQUEST_VIDEO_LOCK -> {
+            REQ_SINGLE -> {
+                prefs.edit().putString(VideoWallpaperService.KEY_SINGLE_VIDEO, uri.toString()).apply()
+                tvStatusSingle.text = "تم الاختيار ✓"
+                tvStatusSingle.setTextColor(0xFF1DB954.toInt())
+            }
+            REQ_LOCK -> {
                 prefs.edit().putString(VideoWallpaperService.KEY_VIDEO_LOCK, uri.toString()).apply()
                 tvStatusLock.text = "تم الاختيار ✓"
                 tvStatusLock.setTextColor(0xFF1DB954.toInt())
             }
-            REQUEST_VIDEO_UNLOCK -> {
-                prefs.edit().putString(VideoWallpaperService.KEY_VIDEO_UNLOCK, uri.toString()).apply()
-                tvStatusUnlock.text = "تم الاختيار ✓"
-                tvStatusUnlock.setTextColor(0xFF1DB954.toInt())
+            REQ_HOME -> {
+                prefs.edit().putString(VideoWallpaperService.KEY_VIDEO_HOME, uri.toString()).apply()
+                tvStatusHome.text = "تم الاختيار ✓"
+                tvStatusHome.setTextColor(0xFF1DB954.toInt())
             }
         }
         updateSetButton()
